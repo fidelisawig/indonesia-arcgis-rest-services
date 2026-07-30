@@ -1,226 +1,193 @@
 #!/usr/bin/env python3
 
-import pandas as pd
-import requests
+import concurrent.futures
+import json
 from datetime import datetime
 
-TIMEOUT = 20
+import pandas as pd
+import requests
 
-SUPPORTED_TYPES = {
-    "MapServer",
-    "FeatureServer",
-    "ImageServer",
-    "SceneServer",
-    "VectorTileServer"
-}
+# ==========================
+# Configuration
+# ==========================
 
+TIMEOUT = (5, 15)          # (connect timeout, read timeout)
+MAX_WORKERS = 12
 
-def get_json(url):
-    """Return (status_code, json, elapsed_ms)."""
-    r = requests.get(
+# ==========================
+# Helper Functions
+# ==========================
+
+def request_json(url):
+    """
+    Request an ArcGIS REST endpoint and return:
+    (HTTP Status, Response Time (ms), JSON object)
+
+    Raises exceptions if the endpoint cannot be parsed.
+    """
+
+    response = requests.get(
         url.rstrip("/"),
         params={"f": "pjson"},
-        timeout=TIMEOUT
+        timeout=TIMEOUT,
+        headers={
+            "User-Agent": "indonesia-arcgis-rest-services-checker"
+        },
     )
 
-    return (
-        r.status_code,
-        r.json(),
-        round(r.elapsed.total_seconds() * 1000)
-    )
+    elapsed = round(response.elapsed.total_seconds() * 1000)
+
+    content_type = response.headers.get("Content-Type", "")
+
+    if "json" not in content_type.lower():
+        raise ValueError("Response is not JSON")
+
+    try:
+        data = response.json()
+
+    except json.JSONDecodeError:
+        raise ValueError("Invalid JSON")
+
+    return response.status_code, elapsed, data
 
 
-def crawl(endpoint):
-    """
-    Crawl an ArcGIS REST endpoint recursively.
-    """
+# ==========================
+# Inspect One Endpoint
+# ==========================
 
-    summary = {
-        "folders": 0,
-        "services": 0,
-        "layers": 0,
-        "mapservers": 0,
-        "featureservers": 0,
-        "imageservers": 0,
-        "sceneservers": 0,
-        "vectortiles": 0,
+def inspect(row):
+
+    endpoint = row.URL.rstrip("/")
+
+    result = {
+        "Institution": row.Institution,
+        "Name": row.Name,
+        "URL": endpoint,
+        "Status": "❌ Offline",
+        "HTTP": "-",
+        "Response": "-",
+        "Folders": "-",
+        "Services": "-",
+        "Layers": "-",
     }
-
-    visited = set()
-
-    def walk(url):
-
-        if url in visited:
-            return
-
-        visited.add(url)
-
-        try:
-
-            code, j, _ = get_json(url)
-
-            if code != 200:
-                return
-
-            if "error" in j:
-                return
-
-            # Count folders
-            folders = j.get("folders", [])
-            summary["folders"] += len(folders)
-
-            # Visit folders
-            for folder in folders:
-
-                walk(f"{url}/{folder}")
-
-            # Count services
-            for svc in j.get("services", []):
-
-                summary["services"] += 1
-
-                svc_url = (
-                    f"{url}/"
-                    f"{svc['name']}/"
-                    f"{svc['type']}"
-                )
-
-                t = svc["type"]
-
-                if t == "MapServer":
-                    summary["mapservers"] += 1
-
-                elif t == "FeatureServer":
-                    summary["featureservers"] += 1
-
-                elif t == "ImageServer":
-                    summary["imageservers"] += 1
-
-                elif t == "SceneServer":
-                    summary["sceneservers"] += 1
-
-                elif t == "VectorTileServer":
-                    summary["vectortiles"] += 1
-
-                if t in SUPPORTED_TYPES:
-
-                    try:
-
-                        _, sj, _ = get_json(svc_url)
-
-                        summary["layers"] += len(
-                            sj.get("layers", [])
-                        )
-
-                    except Exception:
-                        pass
-
-        except Exception:
-            pass
-
-    walk(endpoint.rstrip("/"))
-
-    return summary
-
-
-########################################################################
-
-catalog = pd.read_csv("data/services.csv")
-
-rows = []
-
-for _, row in catalog.iterrows():
-
-    endpoint = row["URL"].rstrip("/")
-
-    status = "❌ Offline"
-    http = "-"
-    elapsed = "-"
 
     try:
 
-        http, j, elapsed = get_json(endpoint)
+        http, elapsed, j = request_json(endpoint)
 
-        if http == 200 and "error" not in j:
+        result["HTTP"] = http
+        result["Response"] = elapsed
 
-            status = "✅ Online"
+        if http != 200:
+            return result
 
-            info = crawl(endpoint)
+        if "error" in j:
+            result["Status"] = "⚠️ ArcGIS Error"
+            return result
 
-        else:
+        result["Status"] = "✅ Online"
 
-            info = {
-                k: "-"
-                for k in [
-                    "folders",
-                    "services",
-                    "layers",
-                    "mapservers",
-                    "featureservers",
-                    "imageservers",
-                    "sceneservers",
-                    "vectortiles",
-                ]
-            }
+        result["Folders"] = len(j.get("folders", []))
+        result["Services"] = len(j.get("services", []))
+        result["Layers"] = len(j.get("layers", []))
+
+    except requests.exceptions.Timeout:
+
+        result["Status"] = "⌛ Timeout"
+
+    except requests.exceptions.ConnectionError:
+
+        result["Status"] = "❌ Connection Error"
+
+    except ValueError:
+
+        result["Status"] = "⚠️ Invalid JSON"
 
     except Exception:
 
-        info = {
-            k: "-"
-            for k in [
-                "folders",
-                "services",
-                "layers",
-                "mapservers",
-                "featureservers",
-                "imageservers",
-                "sceneservers",
-                "vectortiles",
-            ]
-        }
+        result["Status"] = "❌ Failed"
 
-    rows.append([
-        row["Institution"],
-        row["Name"],
-        status,
-        http,
-        elapsed,
-        info["folders"],
-        info["services"],
-        info["layers"],
-        info["mapservers"],
-        info["featureservers"],
-        info["imageservers"],
-        info["sceneservers"],
-        info["vectortiles"],
-    ])
+    return result
 
-########################################################################
 
-today = datetime.utcnow().strftime("%Y-%m-%d")
+# ==========================
+# Main
+# ==========================
+
+catalog = pd.read_csv("data/services.csv")
+
+results = []
+
+with concurrent.futures.ThreadPoolExecutor(
+    max_workers=MAX_WORKERS
+) as executor:
+
+    futures = [
+        executor.submit(inspect, row)
+        for row in catalog.itertuples(index=False)
+    ]
+
+    for future in concurrent.futures.as_completed(futures):
+
+        result = future.result()
+
+        print(
+            f"{result['Status']:18}"
+            f"{str(result['HTTP']):>5} "
+            f"{result['Institution']:<20}"
+            f"{result['Name']}"
+        )
+
+        results.append(result)
+
+# Sort output
+results.sort(
+    key=lambda r: (
+        r["Institution"],
+        r["Name"],
+    )
+)
+
+# ==========================
+# Write Markdown Report
+# ==========================
+
+today = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
 
 with open(
     "status/services_status.md",
     "w",
-    encoding="utf8"
+    encoding="utf-8",
 ) as f:
 
     f.write("# ArcGIS REST Service Status\n\n")
 
-    f.write(f"Last checked: **{today} UTC**\n\n")
+    f.write(
+        "This report is generated automatically by GitHub Actions.\n\n"
+    )
+
+    f.write(f"**Last checked:** {today}\n\n")
 
     f.write(
-"| Institution | Service | Status | HTTP | ms | Folders | Services | Layers | Map | Feature | Image | Scene | Vector |\n"
+        "| Institution | Service | Status | HTTP | Response (ms) | Folders | Services | Layers |\n"
     )
 
     f.write(
-"|-------------|---------|:------:|----:|---:|--------:|---------:|-------:|----:|--------:|------:|------:|-------:|\n"
+        "|---|---|:---:|---:|---:|---:|---:|---:|\n"
     )
 
-    for r in rows:
+    for r in results:
 
         f.write(
-            f"| {r[0]} | {r[1]} | {r[2]} | {r[3]} | {r[4]} | {r[5]} | {r[6]} | {r[7]} | {r[8]} | {r[9]} | {r[10]} | {r[11]} | {r[12]} |\n"
+            f"| {r['Institution']} "
+            f"| {r['Name']} "
+            f"| {r['Status']} "
+            f"| {r['HTTP']} "
+            f"| {r['Response']} "
+            f"| {r['Folders']} "
+            f"| {r['Services']} "
+            f"| {r['Layers']} |\n"
         )
 
-print("Finished.")
+print("\nFinished.")
+print("Report written to status/services_status.md")
