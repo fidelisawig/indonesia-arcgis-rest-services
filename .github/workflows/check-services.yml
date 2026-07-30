@@ -30,12 +30,8 @@ jobs:
         run: |
           python scripts/check_services.py
 
-      - name: Pull latest remote changes
-        run: |
-          git pull --rebase origin main
-
       - name: Commit results
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Update ArcGIS REST service status"
-          push_options: '--force-with-lease'
+          push_options: '--force'
