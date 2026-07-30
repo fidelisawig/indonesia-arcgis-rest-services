@@ -2,27 +2,27 @@
 
 This report is generated automatically by GitHub Actions.
 
-**Last checked:** 2026-07-30 03:30 UTC
+**Last checked:** 2026-07-30 03:54 UTC
 
 | Institution | Service | Status | HTTP | Response (ms) | Folders | Services | Layers |
 |---|---|:---:|---:|---:|---:|---:|---:|
 | ATR/BPN | GISTARU | ⌛ Timeout | - | - | - | - | - |
-| BIG | BIG | ⚠️ Invalid JSON | - | - | - | - | - |
-| BIG | BIG Batas Desa | ⚠️ Invalid JSON | - | - | - | - | - |
-| BIG | BIG CTSRT | ⚠️ Invalid JSON | - | - | - | - | - |
-| BIG | BIG PTRA Hidrogeologi | ⚠️ Invalid JSON | - | - | - | - | - |
-| BIG | KSP (Satu Peta) | ⚠️ Invalid JSON | - | - | - | - | - |
-| BKPM | Geoportal BKPM | ⚠️ Invalid JSON | - | - | - | - | - |
-| BMKG | BMKG Data Cuaca | ⚠️ Invalid JSON | - | - | - | - | - |
-| BMKG | BMKG GIS | ⚠️ Invalid JSON | - | - | - | - | - |
-| BMKG | BMKG Nowcasting | ⚠️ Invalid JSON | - | - | - | - | - |
+| BIG | BIG | ⌛ Timeout | - | - | - | - | - |
+| BIG | BIG Batas Desa | ⌛ Timeout | - | - | - | - | - |
+| BIG | BIG CTSRT | ⌛ Timeout | - | - | - | - | - |
+| BIG | BIG PTRA Hidrogeologi | ⌛ Timeout | - | - | - | - | - |
+| BIG | KSP (Satu Peta) | ⚠️ Response is not JSON | - | - | - | - | - |
+| BKPM | Geoportal BKPM | ⚠️ Response is not JSON | - | - | - | - | - |
+| BMKG | BMKG Data Cuaca | ⚠️ Response is not JSON | - | - | - | - | - |
+| BMKG | BMKG GIS | ⚠️ Response is not JSON | - | - | - | - | - |
+| BMKG | BMKG Nowcasting | ⚠️ Response is not JSON | - | - | - | - | - |
 | BPS | SP2020 Online | ❌ Connection Error | - | - | - | - | - |
-| DKI Jakarta | JAKARTASATU | ⚠️ Invalid JSON | - | - | - | - | - |
-| ESDM | Data Migas | ⚠️ Invalid JSON | - | - | - | - | - |
-| ESDM | GeoService 4 | ⚠️ Invalid JSON | - | - | - | - | - |
-| ESDM | GeoService 5 | ⚠️ Invalid JSON | - | - | - | - | - |
-| ESDM | Geoportal Geologi | ⚠️ Invalid JSON | - | - | - | - | - |
-| Jawa Barat | Jabar Satupeta | ⚠️ Invalid JSON | - | - | - | - | - |
+| DKI Jakarta | JAKARTASATU | ⚠️ Response is not JSON | - | - | - | - | - |
+| ESDM | Data Migas | ⚠️ Response is not JSON | - | - | - | - | - |
+| ESDM | GeoService 4 | ⚠️ Response is not JSON | - | - | - | - | - |
+| ESDM | GeoService 5 | ⚠️ Response is not JSON | - | - | - | - | - |
+| ESDM | Geoportal Geologi | ⚠️ Response is not JSON | - | - | - | - | - |
+| Jawa Barat | Jabar Satupeta | ⚠️ Response is not JSON | - | - | - | - | - |
 | Jawa Barat | SIKLHS / PPK DAS Citarum | ❌ Connection Error | - | - | - | - | - |
 | KLHK | DBGIS | ❌ Connection Error | - | - | - | - | - |
 | KLHK | DUNE KALKS | ❌ Connection Error | - | - | - | - | - |
@@ -31,7 +31,7 @@ This report is generated automatically by GitHub Actions.
 | KLHK | PKG | ❌ Connection Error | - | - | - | - | - |
 | KLHK | SIGAP | ❌ Connection Error | - | - | - | - | - |
 | KLHK | SIPPEG | ❌ Connection Error | - | - | - | - | - |
-| Kabupaten Bogor | Geoportal Kabupaten Bogor | ⚠️ Invalid JSON | - | - | - | - | - |
+| Kabupaten Bogor | Geoportal Kabupaten Bogor | ⚠️ Response is not JSON | - | - | - | - | - |
 | Kota Depok | Geoportal Kota Depok | ⌛ Timeout | - | - | - | - | - |
 | Kota Semarang | Geoportal Kota Semarang | ❌ Connection Error | - | - | - | - | - |
-| Kota Tangerang | Geoportal Kota Tangerang | ⚠️ Invalid JSON | - | - | - | - | - |
+| Kota Tangerang | Geoportal Kota Tangerang | ⌛ Timeout | - | - | - | - | - |
