@@ -99,9 +99,12 @@ def inspect(row):
 
         result["Status"] = "❌ Connection Error"
 
-    except ValueError:
+    except ValueError as e:
 
-        result["Status"] = "⚠️ Invalid JSON"
+        if str(e) == "Response is not JSON":
+            result["Status"] = "⚠️ Response is not JSON"
+        else:
+            result["Status"] = "⚠️ Invalid JSON"
 
     except Exception:
 

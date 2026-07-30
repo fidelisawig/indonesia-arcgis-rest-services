@@ -1,0 +1,33 @@
+name: Deep Crawl ArcGIS REST Services
+
+on:
+  workflow_dispatch:
+
+  schedule:
+    # Runs every 2 weeks (1st and 15th of every month at 00:00 UTC)
+    - cron: "0 0 1,15 * *"
+
+permissions:
+  contents: write
+
+jobs:
+  deep-crawl-services:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run Deep Crawl Script
+        run: |
+          python scripts/crawl_services.py
+
+      - name: Commit updated status report
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Deep Crawl: Update ArcGIS REST service status report"

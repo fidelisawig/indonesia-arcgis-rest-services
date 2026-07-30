@@ -131,6 +131,15 @@ def deep_crawl_endpoint(row):
         summary["Status"] = "❌ Connection Error"
         summary["ErrorNote"] = str(e.reason)
         return summary
+    except ValueError as e:
+        if str(e) == "Response is not JSON":
+            summary["Status"] = "⚠️ Response is not JSON"
+        elif "ArcGIS Error" in str(e):
+            summary["Status"] = "⚠️ ArcGIS Error"
+        else:
+            summary["Status"] = "⚠️ Invalid JSON"
+        summary["ErrorNote"] = str(e)
+        return summary
     except Exception as e:
         summary["Status"] = "⚠️ Failure"
         summary["ErrorNote"] = str(e)
